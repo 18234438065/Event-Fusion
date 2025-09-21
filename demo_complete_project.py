@@ -25,12 +25,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class CompleteProjectDemo:
-    def __init__(self, fusion_url="http://10.1.1.160:30800", receiver_url="http://localhost:8001"):
+    def __init__(self, fusion_url="http://localhost:30800", receiver_url="http://localhost:8001"):
         self.fusion_url = fusion_url
         self.receiver_url = receiver_url
         self.session = requests.Session()
-        self.kafka_url = "http://10.1.1.160:30092"
-        self.es_url = "http://10.1.1.160:30920"
+        self.kafka_url = "http://localhost:30092"
+        self.es_url = "http://localhost:30920"
         
         # 事件类型映射
         self.event_types = {
@@ -338,7 +338,7 @@ class CompleteProjectDemo:
             # 检查Elasticsearch数据
             try:
                 print("\n📊 检查Elasticsearch中的事件数据...")
-                es_url = "http://10.1.1.160:30920"
+                es_url = "http://localhost:30920"
                 
                 # 获取总数
                 count_response = self.session.get(f"{es_url}/event-fusion-logs/_count", timeout=5)
@@ -462,15 +462,15 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="事件融合服务完整演示")
-    parser.add_argument("--fusion-url", default="http://10.1.1.160:30800", help="事件融合服务URL")
-    parser.add_argument("--receiver-url", default="http://10.1.1.160:30801", help="模拟接收服务URL")
+    parser.add_argument("--fusion-url", default="http://localhost:30800", help="事件融合服务URL")
+    parser.add_argument("--receiver-url", default="http://localhost:30801", help="模拟接收服务URL")
     parser.add_argument("--k8s", action="store_true", help="使用K8s服务地址")
     
     args = parser.parse_args()
     
     if args.k8s:
-        fusion_url = "http://10.1.1.160:30800"
-        receiver_url = "http://10.1.1.160:30801"
+        fusion_url = "http://localhost:30800"
+        receiver_url = "http://localhost:30801"
     else:
         fusion_url = args.fusion_url
         receiver_url = args.receiver_url

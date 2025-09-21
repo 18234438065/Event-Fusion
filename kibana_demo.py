@@ -164,8 +164,8 @@ def main():
     """主函数"""
     # 使用K8s服务地址
     demo = KibanaDemo(
-        es_host="http://10.1.1.160:30920",
-        kibana_host="http://10.1.1.160:30601"
+        es_host="http://localhost:30920",
+        kibana_host="http://localhost:30601"
     )
     
     logger.info("开始Kibana演示...")

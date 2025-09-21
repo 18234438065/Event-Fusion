@@ -23,7 +23,7 @@ from typing import Dict, List, Any
 import uuid
 
 class ComprehensiveEventDemo:
-    def __init__(self, base_url: str = "http://10.1.1.160:30801"):
+    def __init__(self, base_url: str = "http://localhost:30801"):
         """初始化综合演示类"""
         self.base_url = base_url
         self.session = requests.Session()
@@ -287,8 +287,8 @@ class ComprehensiveEventDemo:
         # 检查各个服务的状态
         services = {
             "event-fusion-service": f"{self.base_url}/health",
-            "elasticsearch": "http://10.1.1.160:30920/_cluster/health",
-            "kibana": "http://10.1.1.160:30561/api/status"
+            "elasticsearch": "http://localhost:30920/_cluster/health",
+            "kibana": "http://localhost:30561/api/status"
         }
         
         for service_name, url in services.items():
