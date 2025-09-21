@@ -25,10 +25,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class CompleteProjectDemo:
-    def __init__(self, fusion_url="http://10.1.1.160:30800", receiver_url="http://10.1.1.160:30801"):
+    def __init__(self, fusion_url="http://10.1.1.160:30800", receiver_url="http://localhost:8001"):
         self.fusion_url = fusion_url
         self.receiver_url = receiver_url
         self.session = requests.Session()
+        self.kafka_url = "http://10.1.1.160:30092"
+        self.es_url = "http://10.1.1.160:30920"
         
         # 事件类型映射
         self.event_types = {
@@ -93,11 +95,43 @@ class CompleteProjectDemo:
             print(f"❌ 获取接收事件失败: {e}")
             return []
     
+    def check_kafka_messages(self, topic: str = "highway-events") -> str:
+        """检查Kafka主题状态"""
+        try:
+            import subprocess
+            # 简化的Kafka检查
+            cmd = ["kubectl", "exec", "kafka-0", "-n", "event-fusion", "--", "kafka-topics", "--bootstrap-server", "localhost:9092", "--describe", "--topic", topic]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            
+            if result.returncode == 0 and "PartitionCount" in result.stdout:
+                return "主题存在且活跃"
+            return "主题状态未知"
+        except Exception as e:
+            return f"检查失败: {str(e)[:50]}"
+    
+    def check_elasticsearch_count(self, index: str = "event-fusion-logs") -> int:
+        """检查Elasticsearch索引记录数量"""
+        try:
+            response = self.session.get(f"{self.es_url}/{index}/_count", timeout=5)
+            if response.status_code == 200:
+                return response.json().get('count', 0)
+            return 0
+        except Exception as e:
+            print(f"⚠️ ES查询失败: {e}")
+            return 0
+    
     def demo_1_basic_fusion(self):
         """演示1: 基本事件融合"""
         self.print_banner("演示1: 基本事件融合 - 静默窗口和累计上报")
         
         print("🎯 测试场景: 相同位置相同类型事件的融合处理")
+        
+        # 检查初始状态
+        print("\n📊 检查初始数据状态:")
+        initial_kafka_status = self.check_kafka_messages("highway-events")
+        initial_es = self.check_elasticsearch_count()
+        print(f"   Kafka状态: {initial_kafka_status}")
+        print(f"   ES记录数: {initial_es}")
         
         # 发送第一个事件
         print("\n📤 步骤1: 发送初始交通拥堵事件")
@@ -109,6 +143,16 @@ class CompleteProjectDemo:
             print("✅ 初始事件处理成功")
             if result1.get("action") == "NEW_EVENT":
                 print("✅ 正确识别为新事件")
+        
+        # 检查数据变化
+        time.sleep(2)  # 等待数据处理
+        print("\n📊 检查数据变化:")
+        after_kafka_status = self.check_kafka_messages("highway-events")
+        after_es = self.check_elasticsearch_count()
+        print(f"   Kafka状态: {after_kafka_status}")
+        print(f"   ES记录数: {initial_es} -> {after_es} (增加 {after_es - initial_es})")
+        if after_es > initial_es:
+            print("✅ 事件已成功写入Elasticsearch")
         
         print("\n⏰ 等待5秒后发送重复事件...")
         time.sleep(5)

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-receiver-service
+  namespace: event-fusion
+spec:
+  type: NodePort
+  ports:
+  - port: 8001
+    targetPort: 80
+    nodePort: 30808
+    protocol: TCP
+    name: http
+  selector:
+    run: mock-receiver
