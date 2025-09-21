@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zookeeper-config
+  namespace: event-fusion
+data:
+  log4j.properties: |
+    log4j.rootLogger=INFO, CONSOLE, ROLLINGFILE
+    
+    # Console appender
+    log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+    log4j.appender.CONSOLE.Threshold=INFO
+    log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+    log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+    
+    # Rolling file appender
+    log4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender
+    log4j.appender.ROLLINGFILE.Threshold=INFO
+    log4j.appender.ROLLINGFILE.File=/var/lib/zookeeper/log/zookeeper.log
+    log4j.appender.ROLLINGFILE.MaxFileSize=10MB
+    log4j.appender.ROLLINGFILE.MaxBackupIndex=10
+    log4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout
+    log4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+  
+  zoo.cfg: |
+    dataDir=/var/lib/zookeeper/data
+    dataLogDir=/var/lib/zookeeper/log
+    tickTime=2000
+    initLimit=10
+    syncLimit=5
+    autopurge.snapRetainCount=3
+    autopurge.purgeInterval=24
+    maxClientCnxns=60
+    4lw.commands.whitelist=*
+    standaloneEnabled=true
+    reconfigEnabled=false
+    admin.enableServer=true
+    server.1=zookeeper-0.zookeeper-headless.event-fusion.svc.cluster.local:2888:3888

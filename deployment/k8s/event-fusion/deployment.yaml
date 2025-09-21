@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    version: v1.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-fusion-service
+  template:
+    metadata:
+      labels:
+        app: event-fusion-service
+        version: v1.0.0
+    spec:
+      containers:
+      - name: event-fusion-service
+        image: event-fusion:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "8000"
+        - name: REDIS_HOST
+          value: "redis-service.event-fusion.svc.cluster.local"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service.event-fusion.svc.cluster.local:9092"
+        - name: KAFKA_TOPIC_EVENTS
+          value: "highway-events"
+        - name: KAFKA_TOPIC_PROCESSED
+          value: "processed-events"
+        - name: KAFKA_TOPIC_VIDEO
+          value: "video-requests"
+        - name: KAFKA_TOPIC_AUDIT
+          value: "event-send-audit"
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch-service.event-fusion.svc.cluster.local:9200"
+        - name: ELASTICSEARCH_INDEX
+          value: "event-fusion-logs"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: SILENCE_WINDOW_SECONDS
+          value: "60"
+        - name: AGGREGATION_WINDOW_SECONDS
+          value: "60"
+        - name: MAX_REPORT_COUNT
+          value: "10"
+        - name: VIDEO_DURATION_SECONDS
+          value: "30"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: TZ
+          value: "Asia/Shanghai"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: app-data
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30800
+    protocol: TCP
+    name: http
+  selector:
+    app: event-fusion-service

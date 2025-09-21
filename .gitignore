@@ -1,0 +1,487 @@
+# =============================================================================
+# Python
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# =============================================================================
+# IDEs and Editors
+# =============================================================================
+
+# PyCharm
+.idea/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# Operating System
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.target
+.metadata
+.classpath
+.project
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# Docker
+# =============================================================================
+
+# Docker
+.dockerignore
+Dockerfile.dev
+Dockerfile.prod
+
+# =============================================================================
+# Databases
+# =============================================================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.pgsql
+
+# MySQL
+*.mysql
+
+# =============================================================================
+# Logs and Data
+# =============================================================================
+
+# Log files
+*.log
+logs/
+log/
+
+# Data files
+data/logs/*
+data/temp/*
+data/videos/*
+!data/logs/.gitkeep
+!data/temp/.gitkeep
+!data/videos/.gitkeep
+
+# Backup files
+*.backup
+*.bak
+
+# =============================================================================
+# Security and Secrets
+# =============================================================================
+
+# Environment variables
+.env.local
+.env.development
+.env.test
+.env.production
+.env.staging
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# API keys and secrets
+secrets/
+*.secret
+*.secrets
+api_keys.txt
+
+# =============================================================================
+# Application Specific
+# =============================================================================
+
+# Kafka data
+kafka-logs/
+zookeeper-data/
+
+# Redis data
+redis-data/
+
+# Elasticsearch data
+elasticsearch-data/
+
+# Prometheus data
+prometheus-data/
+
+# Grafana data
+grafana-data/
+
+# Video processing temporary files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.flv
+*.wmv
+*.m4v
+*.3gp
+*.ts
+*.m3u8
+
+# Image files (except sample/demo images)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.svg
+!docs/images/*
+!static/images/*
+
+# Audio files
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+
+# =============================================================================
+# Monitoring and Metrics
+# =============================================================================
+
+# Prometheus
+prometheus.yml.local
+
+# Grafana
+grafana.ini.local
+
+# =============================================================================
+# Deployment and Infrastructure
+# =============================================================================
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+
+# Helm
+*.tgz
+charts/*.lock
+
+# =============================================================================
+# Temporary and Cache Files
+# =============================================================================
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Cache directories
+.cache/
+cache/
+
+# Node.js (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# =============================================================================
+# Documentation
+# =============================================================================
+
+# Generated documentation
+docs/_build/
+docs/build/
+site/
+
+# =============================================================================
+# Miscellaneous
+# =============================================================================
+
+# Compressed files
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# Large files
+*.iso
+*.dmg
+*.img
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Local configuration overrides
+local_config.py
+local_settings.py
+config.local.yml
+settings.local.yml
+
+# Performance profiling
+*.prof
+*.profile
+
+# Memory dumps
+*.hprof
+*.dump
+
+# Core dumps
+core
+core.*
+
+# =============================================================================
+# Project Specific Ignores
+# =============================================================================
+
+# Event fusion service specific
+received_events.json
+video_cache/
+rtsp_streams/
+event_backups/
+
+# Development tools
+.pre-commit-config.yaml.local
+pyproject.toml.local
+
+# Local development overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# IDE specific project files
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# OS generated files
+.DS_Store?
+ehthumbs.db
+Thumbs.db
+# 项目特定排除
+archive/
+docs/
+*.tar
+*.log
+build-test-report.md
+GITHUB_UPLOAD_GUIDE.md
+
+# 开发临时文件
+temp-*
+container_extracted_*
+*_backup*

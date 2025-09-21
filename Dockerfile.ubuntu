@@ -1,0 +1,71 @@
+# =============================================================================
+# 事件融合服务 - Ubuntu基础版 Dockerfile
+# 使用Ubuntu作为基础镜像，安装速度更快
+# =============================================================================
+
+FROM ubuntu:22.04
+
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    TZ=Asia/Shanghai \
+    DEBIAN_FRONTEND=noninteractive
+
+# 设置工作目录
+WORKDIR /app
+
+# 配置Ubuntu镜像源加速
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+
+# 更新包管理器并安装必要的软件包
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+    netcat \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 配置pip国内镜像源
+RUN pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
+    pip3 config set install.trusted-host mirrors.aliyun.com
+
+# 复制并安装Python依赖
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# 复制应用代码
+COPY event_fusion_app.py .
+
+# 创建必要的目录
+RUN mkdir -p /app/data/videos /app/data/logs /app/data/temp
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# 暴露端口
+EXPOSE 8000
+
+# 启动命令
+CMD ["python3", "event_fusion_app.py"]
+
+# =============================================================================
+# 构建和使用说明：
+# 
+# 构建：
+#   docker build -f Dockerfile.ubuntu -t event-fusion:ubuntu .
+# 
+# 运行：
+#   docker run -p 8000:8000 -e REDIS_HOST=redis event-fusion:ubuntu
+# 
+# 优势：
+#   - Ubuntu包管理器安装速度快
+#   - 系统依赖安装简单
+#   - 镜像源配置容易
+#   - 调试和维护方便
+# 
+# =============================================================================

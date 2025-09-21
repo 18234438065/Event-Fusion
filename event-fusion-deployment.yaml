@@ -1,0 +1,258 @@
+# =============================================================================
+# Event Fusion Service - 完整部署配置
+# 包含Deployment和Service的完整配置
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    component: api
+    version: latest
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: event-fusion-service
+      component: api
+  template:
+    metadata:
+      labels:
+        app: event-fusion-service
+        component: api
+        version: latest
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: event-fusion-service
+        image: event-fusion
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        # Redis配置
+        - name: REDIS_HOST
+          value: "redis-service.event-fusion.svc.cluster.local"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        
+        # Kafka配置
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service.event-fusion.svc.cluster.local:9092"
+        - name: KAFKA_TOPIC_EVENTS
+          value: "highway-events"
+        - name: KAFKA_TOPIC_PROCESSED
+          value: "processed-events"
+        - name: KAFKA_TOPIC_VIDEO
+          value: "video-requests"
+        - name: KAFKA_TOPIC_AUDIT
+          value: "event-send-audit"
+        
+        # Elasticsearch配置
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch-service.event-fusion.svc.cluster.local:9200"
+        - name: ELASTICSEARCH_INDEX
+          value: "event-fusion-logs"
+        
+        # 应用配置
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: TZ
+          value: "Asia/Shanghai"
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "8000"
+        
+        # 业务配置
+        - name: SILENCE_WINDOW_SECONDS
+          value: "60"
+        - name: AGGREGATION_WINDOW_SECONDS
+          value: "60"
+        - name: MAX_REPORT_COUNT
+          value: "10"
+        - name: VIDEO_DURATION_SECONDS
+          value: "30"
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # 健康检查
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 20
+          successThreshold: 1
+        
+        # 存储挂载
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        - name: app-logs
+          mountPath: /app/logs
+        - name: temp-storage
+          mountPath: /tmp
+      
+      volumes:
+      - name: app-data
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: app-logs
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 200Mi
+      
+      # 调度配置
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      
+      # 安全配置
+      securityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        fsGroup: 0
+      
+      # DNS配置
+      dnsPolicy: ClusterFirst
+      
+      # 节点亲和性（可选）
+      # nodeSelector:
+      #   kubernetes.io/hostname: master
+
+---
+# =============================================================================
+# Event Fusion Service - NodePort服务
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    component: api
+    service-type: external
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    nodePort: 30800
+    protocol: TCP
+  selector:
+    app: event-fusion-service
+    component: api
+  sessionAffinity: None
+
+---
+# =============================================================================
+# Event Fusion Service - ClusterIP服务（内部访问）
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-fusion-internal
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    component: api
+    service-type: internal
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
+  - name: metrics
+    port: 8001
+    targetPort: 8000
+    protocol: TCP
+  selector:
+    app: event-fusion-service
+    component: api
+
+---
+# =============================================================================
+# Event Fusion Service - ServiceMonitor (Prometheus监控，可选)
+# =============================================================================
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: event-fusion-service
+      component: api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - event-fusion

@@ -1,0 +1,196 @@
+# 命名空间
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: event-fusion
+  labels:
+    name: event-fusion
+
+---
+# 事件融合服务部署
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+  labels:
+    app: event-fusion-service
+    version: latest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: event-fusion-service
+  template:
+    metadata:
+      labels:
+        app: event-fusion-service
+        version: latest
+    spec:
+      containers:
+      - name: event-fusion-service
+        image: event-fusion:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: REDIS_HOST
+          value: "redis-service.event-fusion.svc.cluster.local"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-service.event-fusion.svc.cluster.local:9092"
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch-service.event-fusion.svc.cluster.local:9200"
+        - name: MOCK_RECEIVER_URL
+          value: "http://mock-receiver-service.event-fusion.svc.cluster.local:8001"
+        - name: VIDEO_PROCESSOR_URL
+          value: "http://video-processor-service.event-fusion.svc.cluster.local:8002"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+# 事件融合服务Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-fusion-service
+  namespace: event-fusion
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30800
+    protocol: TCP
+    name: http
+  selector:
+    app: event-fusion-service
+
+---
+# 模拟事件接收服务部署
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-receiver
+  namespace: event-fusion
+  labels:
+    app: mock-receiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-receiver
+  template:
+    metadata:
+      labels:
+        app: mock-receiver
+    spec:
+      containers:
+      - name: mock-receiver
+        image: mock-receiver:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8001
+          name: http
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+
+---
+# 模拟事件接收服务Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-receiver-service
+  namespace: event-fusion
+spec:
+  type: NodePort
+  ports:
+  - port: 8001
+    targetPort: 8001
+    nodePort: 30801
+    protocol: TCP
+    name: http
+  selector:
+    app: mock-receiver
+
+---
+# 视频处理服务部署
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-processor
+  namespace: event-fusion
+  labels:
+    app: video-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-processor
+  template:
+    metadata:
+      labels:
+        app: video-processor
+    spec:
+      containers:
+      - name: video-processor
+        image: video-processor:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8002
+          name: http
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: video-storage
+          mountPath: /app/data/videos
+      volumes:
+      - name: video-storage
+        emptyDir:
+          sizeLimit: 10Gi
+
+---
+# 视频处理服务Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-processor-service
+  namespace: event-fusion
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8002
+    targetPort: 8002
+    protocol: TCP
+    name: http
+  selector:
+    app: video-processor
